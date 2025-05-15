@@ -8,8 +8,6 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from wtforms import Form, StringField, PasswordField, EmailField
 from wtforms.validators import InputRequired, Length
 
-load_dotenv()
-
 bcrypt = Bcrypt()
 
 db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'tmp', 'database.db')
