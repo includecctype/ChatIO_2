@@ -12,7 +12,7 @@ bcrypt = Bcrypt()
 
 db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'tmp', 'database.db')
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend/dist", static_url_path="/")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = "hellothere"
@@ -97,6 +97,6 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
 
-    app.run(debug=True, port=5321)
-
+    port = os.environ.get("PORT", 5321)
+    app.run(debug=True, host="0.0.0.0", port=port)
 
