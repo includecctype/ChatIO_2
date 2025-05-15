@@ -6,7 +6,7 @@
         },
         {
             "src": "frontend/package.json",
-            "use": "@vercel/static-build",
+            "use": "@vercel/node",
             "config": {
                 "distDir": "frontend/dist"
             }
