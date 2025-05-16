@@ -8,6 +8,8 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from wtforms import Form, StringField, PasswordField, EmailField
 from wtforms.validators import InputRequired, Length
 
+load_dotenv()
+
 bcrypt = Bcrypt()
 
 db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'tmp', 'database.db')
@@ -17,7 +19,12 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = "hellothere"
 
-CORS(app)
+CORS(
+    app=app,
+    origins=[
+        f"{os.getenv('FRONT_END_URI')}",
+    ]
+)
 
 db = SQLAlchemy(app)
 
