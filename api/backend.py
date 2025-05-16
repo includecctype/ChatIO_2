@@ -23,7 +23,8 @@ CORS(
     app=app,
     origins=[
         f"{os.getenv('FRONT_END_URI')}",
-    ]
+    ],
+    supports_credentials=True
 )
 
 db = SQLAlchemy(app)
@@ -51,6 +52,8 @@ def load_user(user_id):
 
 @app.route('/', methods=["GET"])
 def Home():
+    print("CORS allowed origin:", os.getenv('FRONT_END_URI'))
+
     return jsonify({
         
     })
