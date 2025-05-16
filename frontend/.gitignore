@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+node_modules
 *.local
 
 # Editor directories and files
@@ -19,3 +20,11 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Build output
+dist
+build
+
+# Environment variables
+.env
+.env.*
