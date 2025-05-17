@@ -17,6 +17,7 @@ export default function Register(){
                 e.preventDefault()
 
                 let response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/register`, { // if React created with Vite create, use import.meta and use VITE prefix
+                    credentials: "include",
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"

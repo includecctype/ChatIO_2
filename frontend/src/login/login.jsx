@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 
 export default function Login(){
 
@@ -17,6 +18,7 @@ export default function Login(){
                 e.preventDefault()
 
                 let response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/login`, { // if React created with Vite create, use import.meta and use VITE prefix
+                    credentials: "include",
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -44,6 +46,8 @@ export default function Login(){
             <input type="password" id="password" ref={password}/>
             <button type="submit" ref={submit}>Submit</button>
         </form>
+
+        <Link to="/register">Don't have an account yet?</Link>
 
         {(()=>{
             if (response) return <><p>{response}</p></>
