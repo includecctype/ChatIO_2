@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from wtforms import Form, StringField, PasswordField, EmailField
 from wtforms.validators import InputRequired, Length
+from sqlalchemy.ext.mutable import MutableList
 
 load_dotenv()
 
@@ -19,7 +20,7 @@ app = Flask(__name__, static_folder="../frontend/dist", static_url_path="/")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = "hellothere"
-# app.config["SESSION_COOKIE_SAMESITE"] = "None"
+# app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 # app.config["SESSION_COOKIE_SECURE"] = False # False for local development
 app.config["SESSION_PERMANENT"] = False
 app.config['SESSION_TYPE'] = "filesystem"
@@ -47,7 +48,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(40), unique=True, nullable=False)
     email = db.Column(db.String(40), unique=True, nullable=False)
     password = db.Column(db.String(89), unique=False, nullable=False)
-    interacted = db.Column(db.JSON)
+    interacted = db.Column(MutableList.as_mutable(db.JSON)) # MutableList allows SQLAlchemy to track changes
 
 class AuthForm(Form):
     username = StringField([InputRequired(), Length(min=4, max=20)])
@@ -58,13 +59,28 @@ class AuthForm(Form):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route('/', methods=["GET"])
+@app.route('/', methods=["GET", "POST"])
 def Home():
     if current_user.is_authenticated:
-        print(current_user.interacted)
-        return jsonify({
-            "current_user_data": current_user.interacted
-        })
+        if request.method == "POST":
+            message_data = request.get_json()
+            prev_interacted = current_user.interacted
+            print(prev_interacted)
+            current_user.interacted.append({
+                "username": current_user.username,
+                "message": message_data["message"]
+            })
+            db.session.commit() # if this is not written, the previous struct in json will be removed
+            # db.session.refresh(current_user)
+            print(message_data)
+            print(current_user.interacted)
+            return jsonify({
+
+            })
+        else:
+            return jsonify({
+                "status": "no input yet"
+            })
     else:
         return jsonify({
             "action": "login"
@@ -107,7 +123,7 @@ def Register():
 
             hashed_password = bcrypt.generate_password_hash(form.password.data)
 
-            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, interacted=[])
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user) # flask-login automatically sets the session key
