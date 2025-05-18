@@ -1,5 +1,6 @@
-import datetime
 import os
+import re
+import datetime
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
@@ -49,6 +50,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(40), unique=True, nullable=False)
     email = db.Column(db.String(40), unique=True, nullable=False)
     password = db.Column(db.String(89), unique=False, nullable=False)
+    current_interact = db.Column(db.String(40), nullable=True)
     interacted = db.Column(MutableList.as_mutable(db.JSON)) # MutableList allows SQLAlchemy to track changes
 
 class AuthForm(Form):
@@ -64,37 +66,143 @@ def load_user(user_id):
 def Home():
     if current_user.is_authenticated:
         
-        
+        interacted_people = []
+
+        for interacted_user in current_user.interacted: 
+            toggle = False
+            for interacted_check in interacted_people:
+                if interacted_user["username"] == interacted_check:
+                    toggle = True
+            # if interacted_user["username"] == current_user.username:
+            #     toggle = True
+            if toggle == False:
+                interacted_people.append(interacted_user["username"])
         
         return jsonify({
-
+            "interacted_people": interacted_people
         })
+    
     else:
+
         return jsonify({
             "action": "login"
         })
 
-@app.route('/send', methods=["GET", "POST"])
-def Send():
+# @app.route('/send', methods=["GET", "POST"])
+# def Send():
+#     if request.method == "POST" and request.get_json()['message'] != '':
+#         message_data = request.get_json()
+#         prev_interacted = current_user.interacted
+#         print(prev_interacted)
+#         current_user.interacted.append({
+#             "username": current_user.username,
+#             "message": message_data["message"],
+#             "time": datetime.datetime.now().timestamp()
+#         })
+#         db.session.commit() # if this is not written, the previous struct in json will be removed
+#         # db.session.refresh(current_user)
+#         print(message_data)
+#         print(current_user.interacted)
+#         return jsonify({
+#             "status": "sent"
+#         })
+#     else:
+#         return jsonify({
+#             "status": "no input yet"
+#         })
+    
+@app.route('/all_search', methods=["GET", "POST"])
+def searchAll():
     if request.method == "POST":
-        message_data = request.get_json()
-        prev_interacted = current_user.interacted
-        print(prev_interacted)
-        current_user.interacted.append({
-            "username": current_user.username,
-            "message": message_data["message"]
-        })
-        db.session.commit() # if this is not written, the previous struct in json will be removed
-        # db.session.refresh(current_user)
-        print(message_data)
-        print(current_user.interacted)
-        print(datetime.datetime.now().timestamp())
+        response = request.get_json()
+        related_users = User.query.filter(User.username.like(f'{response["username"]}%')).all()
+        found_users = []
+
+        for user in related_users:
+            print(user.username)
+
+            found_users.append(user.username)
+
         return jsonify({
-            "status": "sent"
+            "found_users": found_users
         })
-    else:
+    
+@app.route('/interacted_search', methods=["GET", "POST"])
+def searchInteracted():
+    if request.method == "POST":
+        response = request.get_json()
+        found_users = []
+
+        for data in current_user.interacted:
+            if re.findall(f'^{response["username"]}', data["username"]):
+                toggle = False
+                for f_user in found_users:
+                    if f_user == data["username"]:
+                        toggle = True
+                if toggle == False:
+                    found_users.append(data["username"])
+
         return jsonify({
-            "status": "no input yet"
+            "found_users": found_users
+        })
+    
+@app.route('/start_chat', methods=["GET", "POST"])
+def startChat():
+    if request.method == "POST":
+        response = request.get_json()
+
+        current_user.current_interact = response["username"]
+
+        interacting_user = User.query.filter_by(username = response['username'])
+
+        other_arr = []
+        self_arr = []
+
+        other_interacted = interacting_user.interacted
+        self_interacted = current_user.interacted
+
+        for interaction in other_interacted:
+            if interaction["username"] == current_user.username:
+                other_arr.append(interaction)
+
+        for interaction in self_interacted:
+            if interaction["username"] == interacting_user.username:
+                self_arr.append(interaction)
+
+        main_arr = []
+
+        other_counter = 0
+        self_counter = 0
+
+        for i in range(len(other_arr) + len(self_arr)):
+
+            toggle = False
+
+            if other_arr[other_counter]["time"] > self_arr[self_counter]["time"] and other_counter != "end":
+                main_arr[i] = {
+                    "unit": "other",
+                    "message": other_arr[other_counter]["message"]
+                }
+            elif self_arr[self_counter]["time"] > other_arr[self_counter]["time"] and self_counter != "end":
+                main_arr[i] = {
+                    "unit": "self",
+                    "message": self_arr[self_counter]["message"]
+                }
+                toggle = True
+
+            if toggle:
+                self_counter += 1
+                if self_counter == len(self_arr):
+                    self_counter = "end"
+            elif not toggle:
+                other_counter += 1
+                if other_counter == len(other_arr):
+                    other_counter = "end"
+
+        print(main_arr)
+
+        return jsonify({
+            "chat_history": main_arr
         })
 
 @app.route('/login', methods=["GET", "POST"])
@@ -134,7 +242,7 @@ def Register():
 
             hashed_password = bcrypt.generate_password_hash(form.password.data)
 
-            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, interacted=[])
+            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, current_interact=None, interacted=[])
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user) # flask-login automatically sets the session key
