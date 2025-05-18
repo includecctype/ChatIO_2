@@ -6,6 +6,7 @@ export default function Home(){
     const navigate = useNavigate()
     const msgInput = useRef()
     const sendBtn = useRef()
+    const msgOutput = useRef()
 
     useEffect(()=>{
         const initialReturn = async () => {
@@ -22,9 +23,11 @@ export default function Home(){
                 navigate('/login')
         })
 
-        sendBtn.current?.addEventListener('click', async ()=>{
-            await fetch(
-                `${import.meta.env.VITE_BACKEND_URI}/`,
+        msgInput.current.focus()
+
+        const sendMessage = async () => {
+            let response_raw = await fetch(
+                `${import.meta.env.VITE_BACKEND_URI}/send`,
                 {
                     credentials: "include", // if this is not included, backend will not recognise it
                     method: "POST",
@@ -36,6 +39,23 @@ export default function Home(){
                     })
                 }
             )
+
+            let response = await response_raw.json()
+
+            if(response.status == 'sent'){
+                msgInput.current.value = ""
+                msgInput.current.focus()
+            }
+        }
+
+        sendBtn.current?.addEventListener('click', async ()=>{
+            sendMessage()
+        })
+
+        window.addEventListener('keydown', e=>{
+            if (e.key == "Enter"){
+                sendMessage()
+            }
         })
 
     }, [])
@@ -46,7 +66,7 @@ export default function Home(){
 
             </div>
             <div>
-                <div>
+                <div ref={msgOutput}>
 
                 </div>
                 <div>

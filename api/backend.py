@@ -1,3 +1,4 @@
+import datetime
 import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, session
@@ -62,28 +63,38 @@ def load_user(user_id):
 @app.route('/', methods=["GET", "POST"])
 def Home():
     if current_user.is_authenticated:
-        if request.method == "POST":
-            message_data = request.get_json()
-            prev_interacted = current_user.interacted
-            print(prev_interacted)
-            current_user.interacted.append({
-                "username": current_user.username,
-                "message": message_data["message"]
-            })
-            db.session.commit() # if this is not written, the previous struct in json will be removed
-            # db.session.refresh(current_user)
-            print(message_data)
-            print(current_user.interacted)
-            return jsonify({
+        
+        
+        
+        return jsonify({
 
-            })
-        else:
-            return jsonify({
-                "status": "no input yet"
-            })
+        })
     else:
         return jsonify({
             "action": "login"
+        })
+
+@app.route('/send', methods=["GET", "POST"])
+def Send():
+    if request.method == "POST":
+        message_data = request.get_json()
+        prev_interacted = current_user.interacted
+        print(prev_interacted)
+        current_user.interacted.append({
+            "username": current_user.username,
+            "message": message_data["message"]
+        })
+        db.session.commit() # if this is not written, the previous struct in json will be removed
+        # db.session.refresh(current_user)
+        print(message_data)
+        print(current_user.interacted)
+        print(datetime.datetime.now().timestamp())
+        return jsonify({
+            "status": "sent"
+        })
+    else:
+        return jsonify({
+            "status": "no input yet"
         })
 
 @app.route('/login', methods=["GET", "POST"])
