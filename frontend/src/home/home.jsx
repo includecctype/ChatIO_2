@@ -12,13 +12,12 @@ export default function Home(){
     const searchInteracted = useRef()
     const searchAll = useRef()
     const searchInput = useRef()
-    const allUUsers = useRef([]) // uninteracted users
-    const allIUsers = useRef([]) // interacted users
-    const allDUsers = useRef([]) // initially displayed users
 
     const [users, setUsers] = useState([])
-    const [u_found_users, setUFoundUsers] = useState([])
     const [i_found_users, setIFoundUsers] = useState([])
+    const [u_found_users, setUFoundUsers] = useState([])
+    const [prev_chat, setPrevChat] = useState([])
+    const [prev_key, setPrevKey] = useState([])
 
     useEffect(()=>{
 
@@ -55,7 +54,7 @@ export default function Home(){
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        "message": msgInput.current.value
+                        "message": msgInput.current?.value
                     })
                 }
             )
@@ -122,61 +121,30 @@ export default function Home(){
             setIFoundUsers(found.found_users)
         })
 
-        for(let i = 0; i < allIUsers.current?.length; i++){
-            allIUsers.current[i]?.addEventListener('click', async ()=>{
-                await fetch(
-                    `${import.meta.env.VITE_BACKEND_URI}/start_chat`,
-                    {
-                        credentials: 'include',
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            "username": allIUsers.current[i]?.textContent
-                        })
-                    }
-                )
-            })
-        }
-
-        for(let i = 0; i < allUUsers.current?.length; i++){
-            allUUsers.current[i]?.addEventListener('click', async ()=>{
-                await fetch(
-                    `${import.meta.env.VITE_BACKEND_URI}/start_chat`,
-                    {
-                        credentials: 'include',
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            "username": allUUsers.current[i]?.textContent
-                        })
-                    }
-                )
-            })
-        }
-
-        for(let i = 0; i < allDUsers.current?.length; i++){
-            allDUsers.current[i]?.addEventListener('click', async ()=>{
-                await fetch(
-                    `${import.meta.env.VITE_BACKEND_URI}/start_chat`,
-                    {
-                        credentials: 'include',
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            "username": allDUsers.current[i]?.textContent
-                        })
-                    }
-                )
-            })
-        }
+        // start chat action
 
     }, [])
+
+    const startChat = async (username) => {
+        let chatHistory = await fetch(
+            `${import.meta.env.VITE_BACKEND_URI}/start_chat`,
+            {
+                credentials: 'include',
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "username": username
+                })
+            }
+        )
+
+        let chat_history = await chatHistory.json()
+
+        setPrevChat(chat_history.chat_history)
+        setPrevKey(chat_history.keyJsx)
+    }
 
     return <>
         <div className="Chat">
@@ -191,8 +159,8 @@ export default function Home(){
                         <div>
                             <p>Friends found:</p>
                             {
-                                i_found_users.map((user, index) => (
-                                    <div key={user} ref={child_user => allIUsers.current[index] = child_user}>{user}</div>
+                                i_found_users.map(user => (
+                                    <div key={user} onClick={()=>startChat(user)}>{user}</div>
                                 ))
                             }
                             <hr />
@@ -204,8 +172,8 @@ export default function Home(){
                         <div>
                             <p>Users found:</p>
                             {
-                                u_found_users.map((user, index) => (
-                                    <div key={user} ref={child_user => allUUsers.current[index] = child_user}>{user}</div>
+                                u_found_users.map(user => (
+                                    <div key={user} onClick={()=>startChat(user)}>{user}</div>
                                 ))
                             }
                             <hr />
@@ -213,18 +181,22 @@ export default function Home(){
                     )
                 }
                 {
-                    users.map((user, index) => (
-                        <div key={user} ref={child_user => allDUsers.current[index] = child_user}>{user}</div>
+                    users.map(user => (
+                        <div key={user} onClick={()=>startChat(user)}>{user}</div>
                     ))
                 }
             </div>
             <div>
                 <div ref={msgOutput}>
-
+                    {
+                        prev_chat.map((chat, index) => (
+                            <p key={index}>{chat.message}</p>
+                        ))
+                    }
                 </div>
                 <div>
                     <input type="text" ref={msgInput}/>
-                    {/* <button ref={sendBtn}>SEND</button> */}
+                    <button ref={sendBtn}>SEND</button>
                 </div>
             </div>
         </div>

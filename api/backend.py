@@ -73,8 +73,8 @@ def Home():
             for interacted_check in interacted_people:
                 if interacted_user["username"] == interacted_check:
                     toggle = True
-            # if interacted_user["username"] == current_user.username:
-            #     toggle = True
+            if interacted_user["username"] == current_user.username:
+                toggle = True
             if toggle == False:
                 interacted_people.append(interacted_user["username"])
         
@@ -88,28 +88,32 @@ def Home():
             "action": "login"
         })
 
-# @app.route('/send', methods=["GET", "POST"])
-# def Send():
-#     if request.method == "POST" and request.get_json()['message'] != '':
-#         message_data = request.get_json()
-#         prev_interacted = current_user.interacted
-#         print(prev_interacted)
-#         current_user.interacted.append({
-#             "username": current_user.username,
-#             "message": message_data["message"],
-#             "time": datetime.datetime.now().timestamp()
-#         })
-#         db.session.commit() # if this is not written, the previous struct in json will be removed
-#         # db.session.refresh(current_user)
-#         print(message_data)
-#         print(current_user.interacted)
-#         return jsonify({
-#             "status": "sent"
-#         })
-#     else:
-#         return jsonify({
-#             "status": "no input yet"
-#         })
+@app.route('/send', methods=["GET", "POST"])
+def Send():
+    if request.method == "POST" and request.get_json()['message'] != '':
+        message_data = request.get_json()
+
+        print(f'current_user.current_interact: {current_user.current_interact}')
+
+        other_username = current_user.current_interact 
+        other_user = User.query.filter_by(username = other_username).first()
+
+        other_user.interacted.append({
+            "username": current_user.username,
+            "message": message_data["message"],
+            "time": datetime.datetime.now().timestamp()
+        })
+        db.session.commit() # if this is not written, the previous struct in json will be removed
+        # db.session.refresh(current_user)
+        print(message_data)
+        print(other_user.interacted)
+        return jsonify({
+            "status": "sent"
+        })
+    else:
+        return jsonify({
+            "status": "no input yet"
+        })
     
 @app.route('/all_search', methods=["GET", "POST"])
 def searchAll():
@@ -149,11 +153,16 @@ def searchInteracted():
 @app.route('/start_chat', methods=["GET", "POST"])
 def startChat():
     if request.method == "POST":
+
+        print(current_user.username)
+
         response = request.get_json()
 
         current_user.current_interact = response["username"]
 
-        interacting_user = User.query.filter_by(username = response['username'])
+        db.session.commit()
+
+        interacting_user = User.query.filter_by(username = response['username']).first() # always use first() or equivalent
 
         other_arr = []
         self_arr = []
@@ -169,35 +178,78 @@ def startChat():
             if interaction["username"] == interacting_user.username:
                 self_arr.append(interaction)
 
+        raw_main_arr = []
         main_arr = []
 
-        other_counter = 0
-        self_counter = 0
+        for i in range(len(other_arr)):
+            if not len(raw_main_arr):
+                raw_main_arr.append(other_arr[i])
+            elif other_arr[i]["time"] > raw_main_arr[i-1]["time"]:
+                raw_main_arr.append(other_arr[i])
+            elif other_arr[i]["time"] < raw_main_arr[i-1]["time"]:
+                checker_index = 2
+                while other_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
+                    checker_index += 1
+                raw_main_arr.insert(
+                    i-checker_index,
+                    other_arr[i]
+                )
 
-        for i in range(len(other_arr) + len(self_arr)):
+        for i in range(len(self_arr)):
+            if not len(raw_main_arr):
+                raw_main_arr.append(self_arr[i])
+            elif self_arr[i]["time"] > raw_main_arr[i-1]["time"]:
+                raw_main_arr.append(self_arr[i])
+            elif self_arr[i]["time"] < raw_main_arr[i-1]["time"]:
+                checker_index = 2
+                while self_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
+                    checker_index += 1
+                raw_main_arr.insert(
+                    i-checker_index,
+                    self_arr[i]
+                )
 
-            toggle = False
-
-            if other_arr[other_counter]["time"] > self_arr[self_counter]["time"] and other_counter != "end":
-                main_arr[i] = {
-                    "unit": "other",
-                    "message": other_arr[other_counter]["message"]
-                }
-            elif self_arr[self_counter]["time"] > other_arr[self_counter]["time"] and self_counter != "end":
-                main_arr[i] = {
+        for index, data in enumerate(raw_main_arr):
+            if data["username"] == current_user.username:
+                main_arr.append({
                     "unit": "self",
-                    "message": self_arr[self_counter]["message"]
-                }
-                toggle = True
+                    "message": data["message"]
+                })
+            elif data["username"] == interacting_user.username:
+                main_arr.append({
+                    "unit": "other",
+                    "message": data["message"]
+                })
 
-            if toggle:
-                self_counter += 1
-                if self_counter == len(self_arr):
-                    self_counter = "end"
-            elif not toggle:
-                other_counter += 1
-                if other_counter == len(other_arr):
-                    other_counter = "end"
+        # other_counter = 0
+        # self_counter = 0
+
+        # for i in range(len(other_arr) + len(self_arr)):
+
+        #     toggle = False
+
+        #     print(other_arr[other_counter]["time"])
+
+        #     if other_arr[other_counter]["time"] > self_arr[self_counter]["time"] and other_counter != "end":
+        #         main_arr[i] = {
+        #             "unit": "other",
+        #             "message": other_arr[other_counter]["message"]
+        #         }
+        #     elif self_arr[self_counter]["time"] > other_arr[self_counter]["time"] and self_counter != "end":
+        #         main_arr[i] = {
+        #             "unit": "self",
+        #             "message": self_arr[self_counter]["message"]
+        #         }
+        #         toggle = True
+
+        #     if toggle:
+        #         self_counter += 1
+        #         if self_counter == len(self_arr):
+        #             self_counter = "end"
+        #     elif not toggle:
+        #         other_counter += 1
+        #         if other_counter == len(other_arr):
+        #             other_counter = "end"
 
         print(main_arr)
 
