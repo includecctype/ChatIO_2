@@ -52,6 +52,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(89), unique=False, nullable=False)
     current_interact = db.Column(db.String(40), nullable=True)
     interacted = db.Column(MutableList.as_mutable(db.JSON)) # MutableList allows SQLAlchemy to track changes
+    chat_history = db.Column(MutableList.as_mutable(db.JSON))
 
 class AuthForm(Form):
     username = StringField([InputRequired(), Length(min=4, max=20)])
@@ -93,20 +94,16 @@ def Send():
     if request.method == "POST" and request.get_json()['message'] != '':
         message_data = request.get_json()
 
-        print(f'current_user.current_interact: {current_user.current_interact}')
-
         other_username = current_user.current_interact 
         other_user = User.query.filter_by(username = other_username).first()
 
-        other_user.interacted.append({
+        other_user.chat_history.append({
             "username": current_user.username,
             "message": message_data["message"],
             "time": datetime.datetime.now().timestamp()
         })
         db.session.commit() # if this is not written, the previous struct in json will be removed
-        # db.session.refresh(current_user)
-        print(message_data)
-        print(other_user.interacted)
+
         return jsonify({
             "status": "sent"
         })
@@ -123,8 +120,6 @@ def searchAll():
         found_users = []
 
         for user in related_users:
-            print(user.username)
-
             found_users.append(user.username)
 
         return jsonify({
@@ -153,30 +148,30 @@ def searchInteracted():
 @app.route('/start_chat', methods=["GET", "POST"])
 def startChat():
     if request.method == "POST":
-
-        print(current_user.username)
-
         response = request.get_json()
+
+        interacting_user = User.query.filter_by(username = response['username']).first() # always use first() or equivalent
 
         current_user.current_interact = response["username"]
 
-        db.session.commit()
+        current_user.interacted.append({"username": interacting_user.username})
+        interacting_user.interacted.append({"username": current_user.username})
 
-        interacting_user = User.query.filter_by(username = response['username']).first() # always use first() or equivalent
+        db.session.commit()
 
         other_arr = []
         self_arr = []
 
-        other_interacted = interacting_user.interacted
-        self_interacted = current_user.interacted
+        other_interacted = interacting_user.chat_history
+        self_interacted = current_user.chat_history
 
-        for interaction in other_interacted:
-            if interaction["username"] == current_user.username:
-                other_arr.append(interaction)
+        for history in other_interacted:
+            if history["username"] == current_user.username:
+                other_arr.append(history)
 
-        for interaction in self_interacted:
-            if interaction["username"] == interacting_user.username:
-                self_arr.append(interaction)
+        for history in self_interacted:
+            if history["username"] == interacting_user.username:
+                self_arr.append(history)
 
         raw_main_arr = []
         main_arr = []
@@ -188,7 +183,7 @@ def startChat():
                 raw_main_arr.append(other_arr[i])
             elif other_arr[i]["time"] < raw_main_arr[i-1]["time"]:
                 checker_index = 2
-                while other_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
+                while (i-checker_index) >= 0 and other_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
                     checker_index += 1
                 raw_main_arr.insert(
                     i-checker_index,
@@ -202,14 +197,14 @@ def startChat():
                 raw_main_arr.append(self_arr[i])
             elif self_arr[i]["time"] < raw_main_arr[i-1]["time"]:
                 checker_index = 2
-                while self_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
+                while (i-checker_index) >= 0 and self_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
                     checker_index += 1
                 raw_main_arr.insert(
                     i-checker_index,
                     self_arr[i]
                 )
 
-        for index, data in enumerate(raw_main_arr):
+        for data in raw_main_arr:
             if data["username"] == current_user.username:
                 main_arr.append({
                     "unit": "self",
@@ -272,6 +267,9 @@ def Login():
             check_password = bcrypt.check_password_hash(user.password, form.password.data)
 
             if user and check_password:
+                if current_user.is_authenticated:
+                    logout_user()
+
                 login_user(user) # flask-login automatically sets the session key
                 # session['username'] = user.username 
                 return jsonify({"message": "Login Successful."})
@@ -294,9 +292,13 @@ def Register():
 
             hashed_password = bcrypt.generate_password_hash(form.password.data)
 
-            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, current_interact=None, interacted=[])
+            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, current_interact=None, interacted=[], chat_history=[])
             db.session.add(new_user)
             db.session.commit()
+
+            if current_user.is_authenticated:
+                logout_user()
+
             login_user(new_user) # flask-login automatically sets the session key
 
             # session['username'] = form.username.data
