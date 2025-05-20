@@ -82,7 +82,7 @@ $standard-green: rgb(0, 200, 50);
         height: 100vh;
 
         > :nth-child(1){
-            // not yet
+            overflow-y: scroll;
         }
 
         > :nth-child(2){

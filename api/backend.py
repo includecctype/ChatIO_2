@@ -41,7 +41,8 @@ CORS(
 
 Session(app)
 
-socketio = SocketIO(app)
+# flask-socketio automatically uses eventlet package
+socketio = SocketIO(app, cors_allowed_origins=f"{os.getenv('FRONT_END_URI')}")
 
 db = SQLAlchemy(app)
 
@@ -56,7 +57,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(40), unique=True, nullable=False)
     email = db.Column(db.String(40), unique=True, nullable=False)
     password = db.Column(db.String(89), unique=False, nullable=False)
-    current_interact = db.Column(db.JSON, unique=False, nullable=False) 
+    current_interact = db.Column(MutableList.as_mutable(db.JSON)) 
     interacted = db.Column(MutableList.as_mutable(db.JSON)) # MutableList allows SQLAlchemy to track changes
     chat_history = db.Column(MutableList.as_mutable(db.JSON))
 
@@ -86,7 +87,8 @@ def Home():
                 interacted_people.append(interacted_user["username"])
         
         return jsonify({
-            "interacted_people": interacted_people
+            "interacted_people": interacted_people,
+            "current_user": current_user.username
         })
     
     else:
@@ -101,6 +103,10 @@ def Send():
         message_data = request.get_json()
 
         other_username = current_user.current_interact[0]["username"]
+
+        print(f'Other Username: {other_username}')
+        print(f'current interact in send : {current_user.current_interact}')
+
         other_user = User.query.filter_by(username = other_username).first()
 
         other_user.chat_history.append({
@@ -117,6 +123,22 @@ def Send():
         return jsonify({
             "status": "no input yet"
         })
+    
+@socketio.on('/socketio_message')
+def messaging(message):
+
+    print('message arrived to backend')
+    print(f'Message Room: {current_user.current_interact[0]["room"]}')
+
+    room = current_user.current_interact[0]["room"]
+    emit(
+        '/socketio_return_message',
+        {
+            "username": current_user.username,
+            "message": message
+        },
+        room=room
+    )
     
 @app.route('/all_search', methods=["GET", "POST"])
 def searchAll():
@@ -162,21 +184,6 @@ def startChat():
         interacting_user.interacted.append({"username": current_user.username})
 
         db.session.commit()
-
-        @socketio.on('start_chat') # this way of checking is preventing current_interact of any users to have content
-        def roomCreate(data):
-            if interacting_user.current_interact[0]["username"] == current_user.username:
-                current_user.current_interact = [{
-                    "username": response["username"],
-                    "room": interacting_user.current_interact[0]["room"]
-                }]
-                join_room(interacting_user.current_interact[0]["room"])
-            elif interacting_user.current_interact[0]["username"] != current_user.username:
-                current_user.current_interact = [{
-                    "username": response["username"],
-                    "room": random.seed()
-                }]
-                join_room(current_user.current_interact[0]["room"])
 
         other_arr = []
         self_arr = []
@@ -287,6 +294,26 @@ def startChat():
         return jsonify({
             "chat_history": main_arr
         })
+    
+@socketio.on('/socket_start_chat') # this way of checking is preventing current_interact of any users to have content
+def roomCreate(response):
+    room = None
+    interacting_user = User.query.filter_by(username = response).first() # always use first() or equivalent
+    if interacting_user.current_interact[0]["username"] == current_user.username:
+        current_user.current_interact = [{
+            "username": response,
+            "room": interacting_user.current_interact[0]["room"]
+        }] # SQLAlchemy can't track the changes if only a specific struct is modified
+        join_room(interacting_user.current_interact[0]["room"])
+        db.session.commit()
+    elif interacting_user.current_interact[0]["username"] != current_user.username:
+        room = str(random.random())
+        current_user.current_interact = [{
+            "username": response,
+            "room": room
+        }]
+        join_room(current_user.current_interact[0]["room"]) # join_room's 2nd param is session. In this case, it is automatically set based on the current user
+        db.session.commit()
 
 @app.route('/login', methods=["GET", "POST"])
 def Login():
@@ -330,7 +357,7 @@ def Register():
 
             hashed_password = bcrypt.generate_password_hash(form.password.data)
 
-            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, current_interact=[], interacted=[], chat_history=[])
+            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, current_interact=[{"username": None, "room": None}], interacted=[], chat_history=[])
             db.session.add(new_user)
 
             try:
@@ -348,14 +375,6 @@ def Register():
             return jsonify({"message": "Registeration Successful"})
         except:
             return jsonify({"message": "Registeration Unsuccessful. Your email or username might be duplicated."})
-
-# @socketio.on('message')
-# def messaging(data):
-#     send(
-#         {
-            
-#         }
-#     )
 
 if __name__ == '__main__':
     with app.app_context():

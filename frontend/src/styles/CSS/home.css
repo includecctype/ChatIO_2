@@ -63,6 +63,9 @@
   width: calc(100vw - 350px);
   height: 100vh;
 }
+.Chat > :nth-child(2) > :nth-child(1) {
+  overflow-y: scroll;
+}
 .Chat > :nth-child(2) > :nth-child(2) {
   display: flex;
   justify-content: space-evenly;

@@ -16,12 +16,20 @@ export default function Home(){
     const searchAll = useRef()
     const searchInput = useRef()
 
+    const [currentUser, setCurrentUser] = useState()
     const [users, setUsers] = useState([])
     const [i_found_users, setIFoundUsers] = useState([])
     const [u_found_users, setUFoundUsers] = useState([])
     const [prev_chat, setPrevChat] = useState([])
 
-    let socketio = io()
+    const socketRef = useRef();
+
+    useEffect(() => {
+        socketRef.current = io(`${import.meta.env.VITE_BACKEND_URI}`, { withCredentials: true });
+        return () => {
+            socketRef.current?.disconnect();
+        };
+    }, []);
 
     useEffect(()=>{
 
@@ -40,7 +48,9 @@ export default function Home(){
             if(response.action == "login")
                 navigate('/login')
             else if(response.interacted_people){
+                console.log(response)
                 setUsers(response.interacted_people)
+                setCurrentUser(response.current_user)
             }
         })
 
@@ -49,10 +59,7 @@ export default function Home(){
         msgInput.current.focus()
 
         const sendMessage = async () => {
-            // socketio.emit(
-            //     'message',
-            //     msgInput.current?.value
-            // )
+            socketRef.current?.emit('/socketio_message', msgInput.current?.value)
 
             let response_raw = await fetch(
                 `${import.meta.env.VITE_BACKEND_URI}/send`,
@@ -130,12 +137,34 @@ export default function Home(){
             setIFoundUsers(found.found_users)
         })
 
-        // start chat action
-
     }, [])
 
+    useEffect(()=>{
+        // socket message sent to room
+
+        socketRef.current?.on('/socketio_return_message', data=>{
+            console.log('socket_returned')
+            console.log(currentUser)
+            console.log(data.username)
+            setPrevChat(prev => [
+                ...prev,
+                {
+                    unit: currentUser == data.username ? "self" : "other",
+                    message: data.message
+                }
+            ])
+        })
+
+        return () => {
+            // .off() is equivalent to removing event listener, in this case, is to prevent duplicates
+            socketRef.current?.off('/socketio_return_message');
+        }
+    }, [currentUser])
+
+    // start chat ( fetch, emit )
+
     const startChat = async (username) => {
-        socketio.emit('start_chat', "chat started") // initial emit
+        socketRef.current?.emit(`/socket_start_chat`, username) // initial emit
 
         let chatHistory = await fetch(
             `${import.meta.env.VITE_BACKEND_URI}/start_chat`,
@@ -245,8 +274,8 @@ export default function Home(){
                             }
 
                             return <>
-                                <div style={{...style1}}>
-                                    <p style={{...style2}} key={index}>{chat.message}</p>
+                                <div style={{...style1}} key={index}>
+                                    <p style={{...style2}}>{chat.message}</p>
                                 </div>
                             </>
                         })
