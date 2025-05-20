@@ -104,9 +104,6 @@ def Send():
 
         other_username = current_user.current_interact[0]["username"]
 
-        print(f'Other Username: {other_username}')
-        print(f'current interact in send : {current_user.current_interact}')
-
         other_user = User.query.filter_by(username = other_username).first()
 
         other_user.chat_history.append({
@@ -126,10 +123,6 @@ def Send():
     
 @socketio.on('/socketio_message')
 def messaging(message):
-
-    print('message arrived to backend')
-    print(f'Message Room: {current_user.current_interact[0]["room"]}')
-
     room = current_user.current_interact[0]["room"]
     emit(
         '/socketio_return_message',
@@ -266,8 +259,6 @@ def startChat():
 
         #     toggle = False
 
-        #     print(other_arr[other_counter]["time"])
-
         #     if other_arr[other_counter]["time"] > self_arr[self_counter]["time"] and other_counter != "end":
         #         main_arr[i] = {
         #             "unit": "other",
@@ -288,8 +279,6 @@ def startChat():
         #         other_counter += 1
         #         if other_counter == len(other_arr):
         #             other_counter = "end"
-
-        print(main_arr)
 
         return jsonify({
             "chat_history": main_arr
@@ -348,8 +337,6 @@ def Register():
     form.username.data = user_response['username']
     form.email.data = user_response['email']
     form.password.data = user_response['password']
-
-    print(user_response)
 
     if request.method == "POST":
         try:

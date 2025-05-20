@@ -48,7 +48,6 @@ export default function Home(){
             if(response.action == "login")
                 navigate('/login')
             else if(response.interacted_people){
-                console.log(response)
                 setUsers(response.interacted_people)
                 setCurrentUser(response.current_user)
             }
@@ -143,9 +142,6 @@ export default function Home(){
         // socket message sent to room
 
         socketRef.current?.on('/socketio_return_message', data=>{
-            console.log('socket_returned')
-            console.log(currentUser)
-            console.log(data.username)
             setPrevChat(prev => [
                 ...prev,
                 {
