@@ -25,11 +25,14 @@ export default function Register(){
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        username: username.current.value.trim(),
-                        email: email.current.value.trim(),
-                        password: password.current.value.trim()
+                        username: username.current?.value.trim(),
+                        email: email.current.value?.trim(),
+                        password: password.current?.value.trim()
                     })
                 })
+
+                console.log(username.current?.value)
+                console.log(email.current?.value)
 
                 let message = await response.json()
                 if (message.message) setResponse(message.message)

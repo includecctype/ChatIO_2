@@ -26,9 +26,9 @@ export default function Login(){
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        username: username.current.value.trim(),
-                        email: email.current.value.trim(),
-                        password: password.current.value.trim()
+                        username: username.current?.value.trim(),
+                        email: email.current?.value.trim(),
+                        password: password.current?.value.trim()
                     })
                 })
 

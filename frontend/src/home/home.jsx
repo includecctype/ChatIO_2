@@ -2,6 +2,7 @@ import '../styles/CSS/home.css'
 
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from 'react-router-dom'
+import { io } from 'socket.io-client'
 
 export default function Home(){
 
@@ -19,6 +20,8 @@ export default function Home(){
     const [i_found_users, setIFoundUsers] = useState([])
     const [u_found_users, setUFoundUsers] = useState([])
     const [prev_chat, setPrevChat] = useState([])
+
+    let socketio = io()
 
     useEffect(()=>{
 
@@ -46,6 +49,11 @@ export default function Home(){
         msgInput.current.focus()
 
         const sendMessage = async () => {
+            // socketio.emit(
+            //     'message',
+            //     msgInput.current?.value
+            // )
+
             let response_raw = await fetch(
                 `${import.meta.env.VITE_BACKEND_URI}/send`,
                 {
@@ -127,6 +135,8 @@ export default function Home(){
     }, [])
 
     const startChat = async (username) => {
+        socketio.emit('start_chat', "chat started") // initial emit
+
         let chatHistory = await fetch(
             `${import.meta.env.VITE_BACKEND_URI}/start_chat`,
             {

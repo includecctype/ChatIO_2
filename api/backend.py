@@ -1,8 +1,10 @@
 import os
 import re
+import random
 import datetime
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, session
+from flask_socketio import SocketIO, emit, send, join_room
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_session import Session
@@ -11,6 +13,8 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from wtforms import Form, StringField, PasswordField, EmailField
 from wtforms.validators import InputRequired, Length
 from sqlalchemy.ext.mutable import MutableList
+
+random.seed(20)
 
 load_dotenv()
 
@@ -27,8 +31,6 @@ app.config["SECRET_KEY"] = "hellothere"
 app.config["SESSION_PERMANENT"] = False
 app.config['SESSION_TYPE'] = "filesystem"
 
-Session(app)
-
 CORS(
     app=app,
     origins=[
@@ -36,6 +38,10 @@ CORS(
     ],
     supports_credentials=True # responsible for cookie
 )
+
+Session(app)
+
+socketio = SocketIO(app)
 
 db = SQLAlchemy(app)
 
@@ -50,7 +56,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(40), unique=True, nullable=False)
     email = db.Column(db.String(40), unique=True, nullable=False)
     password = db.Column(db.String(89), unique=False, nullable=False)
-    current_interact = db.Column(db.String(40), nullable=True)
+    current_interact = db.Column(db.JSON, unique=False, nullable=False) 
     interacted = db.Column(MutableList.as_mutable(db.JSON)) # MutableList allows SQLAlchemy to track changes
     chat_history = db.Column(MutableList.as_mutable(db.JSON))
 
@@ -94,7 +100,7 @@ def Send():
     if request.method == "POST" and request.get_json()['message'] != '':
         message_data = request.get_json()
 
-        other_username = current_user.current_interact 
+        other_username = current_user.current_interact[0]["username"]
         other_user = User.query.filter_by(username = other_username).first()
 
         other_user.chat_history.append({
@@ -152,12 +158,25 @@ def startChat():
 
         interacting_user = User.query.filter_by(username = response['username']).first() # always use first() or equivalent
 
-        current_user.current_interact = response["username"]
-
         current_user.interacted.append({"username": interacting_user.username})
         interacting_user.interacted.append({"username": current_user.username})
 
         db.session.commit()
+
+        @socketio.on('start_chat') # this way of checking is preventing current_interact of any users to have content
+        def roomCreate(data):
+            if interacting_user.current_interact[0]["username"] == current_user.username:
+                current_user.current_interact = [{
+                    "username": response["username"],
+                    "room": interacting_user.current_interact[0]["room"]
+                }]
+                join_room(interacting_user.current_interact[0]["room"])
+            elif interacting_user.current_interact[0]["username"] != current_user.username:
+                current_user.current_interact = [{
+                    "username": response["username"],
+                    "room": random.seed()
+                }]
+                join_room(current_user.current_interact[0]["room"])
 
         other_arr = []
         self_arr = []
@@ -303,15 +322,21 @@ def Register():
     form.email.data = user_response['email']
     form.password.data = user_response['password']
 
+    print(user_response)
+
     if request.method == "POST":
         try:
             form.validate()
 
             hashed_password = bcrypt.generate_password_hash(form.password.data)
 
-            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, current_interact=None, interacted=[], chat_history=[])
+            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, current_interact=[], interacted=[], chat_history=[])
             db.session.add(new_user)
-            db.session.commit()
+
+            try:
+                db.session.commit()
+            except Exception as e:
+                print(e)
 
             if current_user.is_authenticated:
                 logout_user()
@@ -324,10 +349,17 @@ def Register():
         except:
             return jsonify({"message": "Registeration Unsuccessful. Your email or username might be duplicated."})
 
+# @socketio.on('message')
+# def messaging(data):
+#     send(
+#         {
+            
+#         }
+#     )
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
 
     port = os.environ.get("PORT", 5321)
-    app.run(debug=True, host="0.0.0.0", port=port)
-
+    socketio.run(app, debug=True, port=port)

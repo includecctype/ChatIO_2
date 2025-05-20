@@ -2,7 +2,7 @@ import {BrowserRouter as Router, Route, Routes} from 'react-router-dom'
 
 import Home from './home/home'
 import Login from './login/login'
-import Register from './logout/register'
+import Register from './register/register'
 
 export default function App() {
   return(
