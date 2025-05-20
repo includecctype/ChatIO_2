@@ -176,33 +176,50 @@ def startChat():
         raw_main_arr = []
         main_arr = []
 
+        # for i in range(len(other_arr)):
+        #     if not len(raw_main_arr):
+        #         raw_main_arr.append(other_arr[i])
+        #     elif other_arr[i]["time"] > raw_main_arr[i-1]["time"]:
+        #         raw_main_arr.append(other_arr[i])
+        #     elif other_arr[i]["time"] < raw_main_arr[i-1]["time"]:
+        #         checker_index = 2
+        #         while (i-checker_index) >= 0 and other_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
+        #             checker_index += 1
+        #         raw_main_arr.insert(
+        #             i-checker_index,
+        #             other_arr[i]
+        #         )
+
+        # for i in range(len(self_arr)):
+        #     if not len(raw_main_arr):
+        #         raw_main_arr.append(self_arr[i])
+        #     elif self_arr[i]["time"] > raw_main_arr[i-1]["time"]:
+        #         raw_main_arr.append(self_arr[i])
+        #     elif self_arr[i]["time"] < raw_main_arr[i-1]["time"]:
+        #         checker_index = 2
+        #         while (i-checker_index) >= 0 and self_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
+        #             checker_index += 1
+        #         raw_main_arr.insert(
+        #             i-checker_index,
+        #             self_arr[i]
+        #         )
+
         for i in range(len(other_arr)):
-            if not len(raw_main_arr):
-                raw_main_arr.append(other_arr[i])
-            elif other_arr[i]["time"] > raw_main_arr[i-1]["time"]:
-                raw_main_arr.append(other_arr[i])
-            elif other_arr[i]["time"] < raw_main_arr[i-1]["time"]:
-                checker_index = 2
-                while (i-checker_index) >= 0 and other_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
-                    checker_index += 1
-                raw_main_arr.insert(
-                    i-checker_index,
-                    other_arr[i]
-                )
+            raw_main_arr.append(other_arr[i])
 
         for i in range(len(self_arr)):
-            if not len(raw_main_arr):
-                raw_main_arr.append(self_arr[i])
-            elif self_arr[i]["time"] > raw_main_arr[i-1]["time"]:
-                raw_main_arr.append(self_arr[i])
-            elif self_arr[i]["time"] < raw_main_arr[i-1]["time"]:
-                checker_index = 2
-                while (i-checker_index) >= 0 and self_arr[i]["time"] < raw_main_arr[i-checker_index]["time"]:
-                    checker_index += 1
-                raw_main_arr.insert(
-                    i-checker_index,
-                    self_arr[i]
-                )
+            raw_main_arr.append(self_arr[i])
+
+        for i in range(len(raw_main_arr)):
+            current_check = raw_main_arr[i]
+            current_index = None
+            for o in range(len(raw_main_arr) - i):
+                o += i
+                if raw_main_arr[o]["time"] <= current_check["time"]:
+                    current_check = raw_main_arr[o]
+                    current_index = o
+            raw_main_arr[current_index] = raw_main_arr[i]
+            raw_main_arr[i] = current_check
 
         for data in raw_main_arr:
             if data["username"] == current_user.username:
