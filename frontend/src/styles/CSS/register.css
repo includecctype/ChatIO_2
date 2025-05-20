@@ -1,0 +1,56 @@
+h1 {
+  font-size: 33px;
+}
+
+h2, h3, h4, h5, h6 {
+  font-size: 20px;
+}
+
+.Register {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+}
+.Register > form {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 350px;
+  aspect-ratio: 2/3;
+  border-radius: 12px;
+  background-color: rgb(25, 25, 25);
+}
+.Register > form > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.Register > form > div > h1, .Register > form > div h2 {
+  color: white;
+}
+.Register > form > input {
+  border: none;
+  border-radius: 15px;
+  padding: 5px;
+  background-color: white;
+  width: 80%;
+  height: 25px;
+}
+.Register > form > button {
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 10px;
+  background-color: rgb(0, 200, 50);
+  border: 1px solid white;
+  cursor: pointer;
+}
+.Register > p {
+  color: red;
+}
+
+/*# sourceMappingURL=register.css.map */

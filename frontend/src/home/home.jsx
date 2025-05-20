@@ -1,3 +1,5 @@
+import '../styles/CSS/home.css'
+
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 
@@ -17,7 +19,6 @@ export default function Home(){
     const [i_found_users, setIFoundUsers] = useState([])
     const [u_found_users, setUFoundUsers] = useState([])
     const [prev_chat, setPrevChat] = useState([])
-    const [prev_key, setPrevKey] = useState([])
 
     useEffect(()=>{
 
@@ -143,55 +144,102 @@ export default function Home(){
         let chat_history = await chatHistory.json()
 
         setPrevChat(chat_history.chat_history)
-        setPrevKey(chat_history.keyJsx)
     }
 
     return <>
         <div className="Chat">
             <div ref={startedChat}>
                 <div>
-                    <input type="text" ref={searchInput}/>
-                    <button ref={searchInteracted}>SEARCH</button>
-                    <button ref={searchAll}>ADD NEW</button>
+                    <div> {/* .Chat > :nth-child(1) > div > :nth-child(1) */}
+                        <input type="text" ref={searchInput}/>
+                        <div>
+                            <button ref={searchInteracted}>SEARCH</button>
+                            <button ref={searchAll}>ADD</button>
+                        </div>
+                    </div>
+                    {
+                        i_found_users?.length > 0 && (
+                            <div className='InteractedFound'>
+                                <p>Friends found:</p>
+                                {
+                                    i_found_users.map(user => (
+                                        <div key={user} onClick={()=>startChat(user)}>{user}</div>
+                                    ))
+                                }
+                                <hr />
+                            </div>
+                        )
+                    }
+                    {
+                        u_found_users?.length > 0 && (
+                            <div className='UninteractedFound'>
+                                <p>Users found:</p>
+                                {
+                                    u_found_users.map(user => (
+                                        <div key={user} onClick={()=>startChat(user)}>{user}</div>
+                                    ))
+                                }
+                                <hr />
+                            </div>
+                        )
+                    }
+                    {
+                        users.map(user => (
+                            <div className='Interacted' key={user} onClick={()=>startChat(user)}>{user}</div>
+                        ))
+                    }
                 </div>
-                {
-                    i_found_users?.length > 0 && (
-                        <div>
-                            <p>Friends found:</p>
-                            {
-                                i_found_users.map(user => (
-                                    <div key={user} onClick={()=>startChat(user)}>{user}</div>
-                                ))
-                            }
-                            <hr />
-                        </div>
-                    )
-                }
-                {
-                    u_found_users?.length > 0 && (
-                        <div>
-                            <p>Users found:</p>
-                            {
-                                u_found_users.map(user => (
-                                    <div key={user} onClick={()=>startChat(user)}>{user}</div>
-                                ))
-                            }
-                            <hr />
-                        </div>
-                    )
-                }
-                {
-                    users.map(user => (
-                        <div key={user} onClick={()=>startChat(user)}>{user}</div>
-                    ))
-                }
             </div>
             <div>
                 <div ref={msgOutput}>
                     {
-                        prev_chat.map((chat, index) => (
-                            <p key={index}>{chat.message}</p>
-                        ))
+                        prev_chat.map((chat, index) => {
+
+                            let style1
+                            let style2
+
+                            if(chat.unit == "other"){
+                                style1 = {
+                                    display: "flex",
+                                    justifyContent: "flex-start",
+                                    alignItems: "center",
+                                    margin: "20px"
+                                }
+
+                                style2 = {
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    border: "1px solid rgb(25, 25, 25)",
+                                    borderRadius: "12px",
+                                    padding: "5px",
+                                    backgroundColor: "rgb(0, 200, 255)"
+                                }
+                            }else if(chat.unit == "self"){
+                                style1 = {
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    alignItems: "center",
+                                    width: "100%"
+                                }
+
+                                style2 = {
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    border: "1px solid rgb(25, 25, 25)",
+                                    borderRadius: "12px",
+                                    padding: "5px",
+                                    backgroundColor: "rgb(0, 255, 100)"
+                                }
+                            }
+
+                            return <>
+                                <div style={{...style1}}>
+                                    <p style={{...style2}} key={index}>{chat.message}</p>
+                                </div>
+                            </>
+                        })
                     }
                 </div>
                 <div>

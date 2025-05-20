@@ -1,0 +1,74 @@
+$nonres-width: 350px;
+$nonres-border-radius: 12px;
+$nonres-small-height: 35px;
+$nonres-padding: 5px;
+
+h1{
+    font-size: 33px;
+}
+
+h2, h3, h4, h5, h6{
+    font-size: 20px;
+}
+
+.Login{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+
+    > form {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        align-items: center;
+        width: $nonres-width;
+        aspect-ratio: 2/3;
+        border-radius: $nonres-border-radius;
+        background-color: rgb(25, 25, 25);
+
+        > div {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            > h1, h2{
+                color: white;
+            }
+        }
+
+        > input {
+            border: none;
+            border-radius: calc(($nonres-small-height - $nonres-padding)/2);
+            padding: $nonres-padding;
+            background-color: white;
+            width: 80%;
+            height: calc($nonres-small-height - $nonres-padding*2);
+        }
+
+        > button {
+            font-weight: 600;
+            border-radius: $nonres-border-radius;
+            padding: calc($nonres-padding * 2);
+            background-color: rgb(0, 200, 50);
+            border: 1px solid white;
+            cursor: pointer;
+        }
+    }
+
+    > a{
+        color: rgb(25, 25, 25);
+    }
+
+    > p {
+        color: red;
+    }
+}
+
+
+
+
+

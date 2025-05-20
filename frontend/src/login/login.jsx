@@ -1,3 +1,5 @@
+import '../styles/CSS/login.css'
+
 import { useRef, useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 
@@ -36,14 +38,15 @@ export default function Login(){
         }
     })
 
-    return <>
+    return <div className="Login">
         <form method="POST" ref={form}>
-            <label htmlFor="username">Username</label>
-            <input type="text" id="username" ref={username}/>
-            <label htmlFor="email">Email:</label>
-            <input type="text" id="email" ref={email}/>
-            <label htmlFor="password">Password:</label>
-            <input type="password" id="password" ref={password}/>
+            <div>
+                <h1>ChatIO</h1>
+                <h2>membership</h2>
+            </div>
+            <input type="text" placeholder='username' ref={username}/>
+            <input type="text" placeholder='email' ref={email}/>
+            <input type="password" placeholder='password' ref={password}/>
             <button type="submit" ref={submit}>Submit</button>
         </form>
 
@@ -52,7 +55,7 @@ export default function Login(){
         {(()=>{
             if (response) return <><p>{response}</p></>
         })()}
-    </>
+    </div>
 
 }
 

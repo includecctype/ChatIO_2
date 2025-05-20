@@ -1,0 +1,110 @@
+$nonres-medium-width: 350px;
+$nonres-small-width: 170px;
+$nonres-medium-general-spacing: 25px;
+$nonres-small-general-spacing: 5px;
+$nonres-small-height: 40px;
+$nonres-small-borderRadius: 12px;
+
+$standard-black: #191919;
+$standard-purple-pink: rgb(230, 0, 250);
+$standard-green: rgb(0, 200, 50);
+
+.Chat {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+
+    > :nth-child(1) {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        border: 1px solid $standard-black;
+        width: $nonres-medium-width;
+        height: 100%;
+
+        > div{
+            position: relative;
+            top: $nonres-medium-general-spacing;
+            left: $nonres-medium-general-spacing;
+            width: calc($nonres-medium-width - ($nonres-medium-general-spacing * 2));
+            overflow-x: hidden;
+
+            > :nth-child(1){
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+                margin: 0 0 $nonres-medium-general-spacing 0;
+
+                > input {
+                    border-radius: calc(($nonres-small-height - $nonres-small-general-spacing/2)/2);
+                    padding: $nonres-small-general-spacing;
+                    height: calc($nonres-small-height - $nonres-small-general-spacing*2);
+                    width: calc($nonres-small-width - $nonres-small-general-spacing*2);
+                }
+
+                > div {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-evenly;
+                    align-items: center;
+                    height: $nonres-small-height;
+
+                    > button {
+                        border: 1px solid $standard-black;
+                        border-radius: $nonres-small-borderRadius;
+                        background-color: $standard-purple-pink;
+                        cursor: pointer;
+                        width: calc($nonres-small-width/2);
+                    }
+                }
+            }
+
+            > .Interacted {
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+                border: 1px solid $standard-black;
+                height: $nonres-small-height;
+                cursor: pointer;
+            }
+        }
+    }
+
+    > :nth-child(2){
+        display: grid;
+        grid-template-rows: 85% 15%;
+        grid-template-columns: 100%;
+        width: calc(100vw - $nonres-medium-width);
+        height: 100vh;
+
+        > :nth-child(1){
+            // not yet
+        }
+
+        > :nth-child(2){
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            border-top: 1px solid $standard-black;
+
+            > input{
+                width: 80%;
+                height: $nonres-small-height;
+                border-radius: $nonres-small-borderRadius;
+            }
+
+            > button{
+                background-color: $standard-green;
+                width: $nonres-small-width;
+                height: $nonres-small-height;
+                border-radius: $nonres-small-borderRadius;
+            }
+        }
+    }
+}
+
+
