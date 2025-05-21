@@ -176,8 +176,19 @@ def startChat():
 
         interacting_user = User.query.filter_by(username = response['username']).first() # always use first() or equivalent
 
-        current_user.interacted.append({"username": interacting_user.username})
-        interacting_user.interacted.append({"username": current_user.username})
+        toggle1 = False
+        for interacted in current_user.interacted:
+            if interacted["username"] == interacting_user.username:
+                toggle1 = True
+        if toggle1 == False:
+            current_user.interacted.append({"username": interacting_user.username})
+        
+        toggle2 = False
+        for interacted in interacting_user.interacted:
+            if interacted["username"] == current_user.username:
+                toggle2 = True
+        if toggle2 == False:
+            interacting_user.interacted.append({"username": current_user.username})
 
         db.session.commit()
 
@@ -287,7 +298,7 @@ def startChat():
             "chat_history": main_arr
         })
     
-@socketio.on('/socket_start_chat') # this way of checking is preventing current_interact of any users to have content
+@socketio.on('/socket_start_chat')
 def roomCreate(response):
     room = None
     interacting_user = User.query.filter_by(username = response).first() # always use first() or equivalent
@@ -306,6 +317,28 @@ def roomCreate(response):
         }]
         join_room(current_user.current_interact[0]["room"]) # join_room's 2nd param is session. In this case, it is automatically set based on the current user
         db.session.commit()
+
+@app.route('/delete_interacted', methods=["GET", "POST"])
+def deleteInteracted():
+    if request.method == "POST":
+        print('delete interacted running')
+
+        username = request.get_json()["username"]
+
+        toggle = True
+
+        while toggle == True:
+            for index, interacted in enumerate(current_user.interacted):
+                if username == interacted["username"]:
+                    print('username FOUND')
+                    print(interacted["username"])
+                    current_user.interacted.pop(index)
+                    toggle == False
+                    break
+
+        return jsonify({
+            "message": "Successfully deleted interaction"
+        })
 
 @app.route('/login', methods=["GET", "POST"])
 def Login():
@@ -366,7 +399,7 @@ def Register():
         except:
             return jsonify({"message": "Registeration Unsuccessful. Your email or username might be duplicated."})
 
-@app.route('/logout', methods=["GET", "POST"])
+@app.route('/logout', methods=["POST"])
 def Logout():
     logout_user()
     return jsonify({

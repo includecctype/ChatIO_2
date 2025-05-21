@@ -46,6 +46,7 @@
   margin: 5px 0;
   width: 300px;
   height: 40px;
+  cursor: pointer;
 }
 .Chat > :nth-child(1) > :nth-child(1) > div > :nth-child(2) {
   margin-bottom: 25px;
@@ -90,6 +91,17 @@
   border: 1px solid #191919;
   height: 40px;
   cursor: pointer;
+}
+.Chat > :nth-child(1) > :nth-child(2) > .Interacted > button {
+  position: relative;
+  color: white;
+  background-color: rgb(255, 0, 0);
+  border: none;
+  border-radius: 3px;
+  width: 17px;
+  aspect-ratio: 1/1;
+  transform: scale(2);
+  z-index: 1;
 }
 .Chat > :nth-child(2) {
   display: grid;

@@ -15,6 +15,7 @@ export default function Home(){
     const searchInteracted = useRef()
     const searchAll = useRef()
     const searchInput = useRef()
+    const logoutBtn = useRef()
 
     const [currentUser, setCurrentUser] = useState()
     const [users, setUsers] = useState([])
@@ -136,6 +137,30 @@ export default function Home(){
             setIFoundUsers(found.found_users)
         })
 
+        // logout
+
+        logoutBtn.current?.addEventListener('click', async () => {
+            console.log('logging out')
+
+            let response = await fetch(
+                `${import.meta.env.VITE_BACKEND_URI}/logout`,
+                {
+                    credentials: 'include',
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "message": "logout"
+                    })
+                }
+            )
+
+            if (await response.json()) {
+                navigate('/login')
+            }
+        })
+
     }, [])
 
     useEffect(()=>{
@@ -185,15 +210,34 @@ export default function Home(){
         }
     }
 
+    const deleteInteracted = async (username) => {
+        let response_raw = await fetch(
+            `${import.meta.env.VITE_BACKEND_URI}/delete_interacted`,
+            {
+                credentials: 'include',
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "username": username
+                })
+            }
+        )
+
+        let response = await response_raw.json()
+
+        console.log(response)
+    }
+
     return <>
         <div className="Chat">
-            {/* work on side bar (current user username, logout, setting) */}
             <div ref={startedChat}>
                 <div>
                     <p>{currentUser}</p>
                     <div>
                         <button>SETTINGS</button>
-                        <button>LOGOUT</button>
+                        <button ref={logoutBtn}>LOGOUT</button>
                     </div>
                 </div>
                 <div>
@@ -232,7 +276,10 @@ export default function Home(){
                     }
                     {
                         users.map(user => (
-                            <div className='Interacted' key={user} onClick={()=>startChat(user)}>{user}</div>
+                            <div className='Interacted' key={user} onClick={()=>startChat(user)}>
+                                {user}
+                                <button onClick={()=>deleteInteracted(user)}>-</button>
+                            </div>
                         ))
                     }
                 </div>

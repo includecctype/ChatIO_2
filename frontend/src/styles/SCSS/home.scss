@@ -44,7 +44,7 @@ $standard-green: rgb(0, 200, 50);
                 width: 100%;
             }
 
-            > div{
+            > div {
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -60,6 +60,7 @@ $standard-green: rgb(0, 200, 50);
                     margin: $nonres-small-general-spacing 0;
                     width: calc($nonres-medium-width - $nonres-medium-general-spacing*2);
                     height: $nonres-small-height;
+                    cursor: pointer;
                 }
 
                 > :nth-child(2) {
@@ -112,6 +113,18 @@ $standard-green: rgb(0, 200, 50);
                 border: 1px solid $standard-black;
                 height: $nonres-small-height;
                 cursor: pointer;
+
+                > button {
+                    position: relative;
+                    color: white;
+                    background-color: rgb(255, 0, 0);
+                    border: none;
+                    border-radius: calc($nonres-small-borderRadius/4);
+                    width: $nonres-p-fontSize;
+                    aspect-ratio: 1/1;
+                    transform: scale(2);
+                    z-index: 1;
+                }
             }
         }
     }
