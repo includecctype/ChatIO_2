@@ -330,14 +330,13 @@ def deleteInteracted():
         while toggle == True:
             for index, interacted in enumerate(current_user.interacted):
                 if username == interacted["username"]:
-                    print('username FOUND')
-                    print(interacted["username"])
                     current_user.interacted.pop(index)
-                    toggle == False
+                    toggle = False
+                    db.session.commit()
                     break
 
         return jsonify({
-            "message": "Successfully deleted interaction"
+            "current_user": current_user.username
         })
 
 @app.route('/login', methods=["GET", "POST"])
@@ -356,6 +355,7 @@ def Login():
 
             if user and check_password:
                 if current_user.is_authenticated:
+                    session.clear()
                     logout_user()
 
                 login_user(user) # flask-login automatically sets the session key
@@ -389,6 +389,7 @@ def Register():
                 print(e)
 
             if current_user.is_authenticated:
+                session.clear()
                 logout_user()
 
             login_user(new_user) # flask-login automatically sets the session key

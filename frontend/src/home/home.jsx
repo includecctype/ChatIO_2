@@ -205,7 +205,7 @@ export default function Home(){
 
         setPrevChat(chat_history.chat_history)
 
-        if (prev_chat.length >= 101){
+        if (prev_chat.length > 100){
             prev_chat.splice(100)
         }
     }
@@ -227,7 +227,7 @@ export default function Home(){
 
         let response = await response_raw.json()
 
-        console.log(response)
+        setCurrentUser(response.current_user)
     }
 
     return <>
