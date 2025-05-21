@@ -106,6 +106,9 @@ def Send():
 
         other_user = User.query.filter_by(username = other_username).first()
 
+        if len(other_user.chat_history) > 100:
+            other_user.chat_history[100:] = []
+
         other_user.chat_history.append({
             "username": current_user.username,
             "message": message_data["message"],
@@ -362,6 +365,13 @@ def Register():
             return jsonify({"message": "Registeration Successful"})
         except:
             return jsonify({"message": "Registeration Unsuccessful. Your email or username might be duplicated."})
+
+@app.route('/logout', methods=["GET", "POST"])
+def Logout():
+    logout_user()
+    return jsonify({
+        "message": "You have successfully logged out"
+    })
 
 if __name__ == '__main__':
     with app.app_context():

@@ -179,13 +179,25 @@ export default function Home(){
         let chat_history = await chatHistory.json()
 
         setPrevChat(chat_history.chat_history)
+
+        if (prev_chat.length >= 101){
+            prev_chat.splice(100)
+        }
     }
 
     return <>
         <div className="Chat">
+            {/* work on side bar (current user username, logout, setting) */}
             <div ref={startedChat}>
                 <div>
-                    <div> {/* .Chat > :nth-child(1) > div > :nth-child(1) */}
+                    <p>{currentUser}</p>
+                    <div>
+                        <button>SETTINGS</button>
+                        <button>LOGOUT</button>
+                    </div>
+                </div>
+                <div>
+                    <div> {/* .Chat > :nth-child(1) > :nth-child(2) > :nth-child(1) */}
                         <input type="text" ref={searchInput}/>
                         <div>
                             <button ref={searchInteracted}>SEARCH</button>

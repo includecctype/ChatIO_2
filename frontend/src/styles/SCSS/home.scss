@@ -4,6 +4,8 @@ $nonres-medium-general-spacing: 25px;
 $nonres-small-general-spacing: 5px;
 $nonres-small-height: 40px;
 $nonres-small-borderRadius: 12px;
+$nonres-p-fontSize: 17px;
+$nonres-h1-fontSize: 25px;
 
 $standard-black: #191919;
 $standard-purple-pink: rgb(230, 0, 250);
@@ -26,7 +28,47 @@ $standard-green: rgb(0, 200, 50);
         width: $nonres-medium-width;
         height: 100%;
 
-        > div{
+        > :nth-child(1) {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            width: 100%;
+
+            > p {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: $nonres-h1-fontSize;
+                margin-top: $nonres-medium-general-spacing;
+                width: 100%;
+            }
+
+            > div{
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid $standard-black;
+                width: 100%;
+
+                > button {
+                    color: white;
+                    background-color: $standard-black;
+                    border: none;
+                    border-radius: $nonres-small-borderRadius;
+                    margin: $nonres-small-general-spacing 0;
+                    width: calc($nonres-medium-width - $nonres-medium-general-spacing*2);
+                    height: $nonres-small-height;
+                }
+
+                > :nth-child(2) {
+                    margin-bottom: $nonres-medium-general-spacing;
+                }
+            }
+        }
+
+        > :nth-child(2){
             position: relative;
             top: $nonres-medium-general-spacing;
             left: $nonres-medium-general-spacing;
