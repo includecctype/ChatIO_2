@@ -18,6 +18,7 @@ export default function Home(){
     const logoutBtn = useRef()
 
     const [currentUser, setCurrentUser] = useState()
+    const [chatStatus, setChatStatus] = useState()
     const [users, setUsers] = useState([])
     const [i_found_users, setIFoundUsers] = useState([])
     const [u_found_users, setUFoundUsers] = useState([])
@@ -55,8 +56,6 @@ export default function Home(){
         })
 
         // sending messages
-
-        msgInput.current.focus()
 
         const sendMessage = async () => {
             socketRef.current?.emit('/socketio_message', msgInput.current?.value)
@@ -204,6 +203,7 @@ export default function Home(){
         let chat_history = await chatHistory.json()
 
         setPrevChat(chat_history.chat_history)
+        setChatStatus(chat_history.chat_started)
 
         if (prev_chat.length > 100){
             prev_chat.splice(100)
@@ -228,6 +228,10 @@ export default function Home(){
         let response = await response_raw.json()
 
         setCurrentUser(response.current_user)
+
+        if (response) {
+            window.location.reload()
+        }
     }
 
     return <>
@@ -336,10 +340,14 @@ export default function Home(){
                         })
                     }
                 </div>
-                <div>
-                    <input type="text" ref={msgInput}/>
-                    <button ref={sendBtn}>SEND</button>
-                </div>
+                {
+                    chatStatus && (
+                        <div>
+                            <input type="text" ref={msgInput}/>
+                            <button ref={sendBtn}>SEND</button>
+                        </div>       
+                    )
+                }
             </div>
         </div>
     </>

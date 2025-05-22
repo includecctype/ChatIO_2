@@ -295,7 +295,8 @@ def startChat():
         #             other_counter = "end"
 
         return jsonify({
-            "chat_history": main_arr
+            "chat_history": main_arr,
+            "chat_started": True
         })
     
 @socketio.on('/socket_start_chat')
@@ -321,19 +322,37 @@ def roomCreate(response):
 @app.route('/delete_interacted', methods=["GET", "POST"])
 def deleteInteracted():
     if request.method == "POST":
-        print('delete interacted running')
-
         username = request.get_json()["username"]
 
-        toggle = True
+        other_user = User.query.filter_by(username = username).first()
 
+        toggle = True
         while toggle == True:
             for index, interacted in enumerate(current_user.interacted):
                 if username == interacted["username"]:
                     current_user.interacted.pop(index)
                     toggle = False
-                    db.session.commit()
                     break
+
+        pop_index1 = []
+        for index, chat in enumerate(other_user.chat_history):
+            if chat["username"] == current_user.username:
+                pop_index1.append(index)
+        pop_index1.sort(reverse=True)
+
+        for popper in pop_index1:
+            other_user.chat_history.pop(popper)
+
+        pop_index2 = []
+        for index, chat in enumerate(current_user.chat_history):
+            if chat["username"] == username:
+                pop_index2.append(index)
+        pop_index2.sort(reverse=True)
+
+        for popper in pop_index2:
+            other_user.chat_history.pop(popper)
+        
+        db.session.commit()
 
         return jsonify({
             "current_user": current_user.username
