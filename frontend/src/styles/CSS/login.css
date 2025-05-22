@@ -14,6 +14,11 @@ h2, h3, h4, h5, h6 {
   width: 100vw;
   height: 100vh;
 }
+@media (max-width: 600px) {
+  .Login > form {
+    transform: scale(0.8);
+  }
+}
 .Login > form {
   display: flex;
   flex-direction: column;

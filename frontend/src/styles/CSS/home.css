@@ -1,4 +1,5 @@
 .Chat {
+  position: relative;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -103,6 +104,15 @@
   transform: scale(2);
   z-index: 1;
 }
+@media (max-width: 600px) {
+  .Chat > :nth-child(1) {
+    position: absolute;
+    top: 0;
+    left: 100vw;
+    display: none;
+    width: 100vw;
+  }
+}
 .Chat > :nth-child(2) {
   display: grid;
   grid-template-rows: 85% 15%;
@@ -125,10 +135,38 @@
   border-radius: 12px;
 }
 .Chat > :nth-child(2) > :nth-child(2) > button {
+  position: relative;
   background-color: rgb(0, 200, 50);
   width: 170px;
   height: 40px;
   border-radius: 12px;
+  cursor: pointer;
+  z-index: 1;
+}
+@media (max-width: 600px) {
+  .Chat > :nth-child(2) {
+    width: 100vw;
+  }
+}
+.Chat > :nth-child(3) {
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  background-color: #191919;
+  border-radius: 3px;
+}
+.Chat > :nth-child(3) > img {
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 600px) {
+  .Chat > :nth-child(3) {
+    display: flex;
+  }
 }
 
 /*# sourceMappingURL=home.css.map */

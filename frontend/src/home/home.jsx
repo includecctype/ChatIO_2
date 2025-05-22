@@ -3,6 +3,10 @@ import '../styles/CSS/home.css'
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
+import gsap from 'gsap'
+import {useGSAP} from '@gsap/react'
+
+import swapIMG from '../svg/swap.svg'
 
 export default function Home(){
 
@@ -16,6 +20,7 @@ export default function Home(){
     const searchAll = useRef()
     const searchInput = useRef()
     const logoutBtn = useRef()
+    const swapBtn = useRef()
 
     const [currentUser, setCurrentUser] = useState()
     const [chatStatus, setChatStatus] = useState()
@@ -82,7 +87,7 @@ export default function Home(){
             }
         }
 
-        sendBtn.current?.addEventListener('click', async ()=>{
+        sendBtn.current?.addEventListener('click', ()=>{
             sendMessage()
         })
 
@@ -161,6 +166,49 @@ export default function Home(){
         })
 
     }, [])
+
+    useGSAP(()=>{
+        // side bar
+        let toggle = false
+        swapBtn.current?.addEventListener('click', ()=>{    
+            let buttonWidth = swapBtn.current?.getBoundingClientRect().width
+
+            if (!toggle) {
+                gsap.fromTo(startedChat.current, 
+                    {
+                        duration: 0.25,
+                        ease: "none",
+                        left: -buttonWidth,
+                        display: "flex",
+                        opacity: 0
+                    },
+                    {
+                        left: 0,
+                        display: "flex",
+                        opacity: 1
+                    }
+                )
+                toggle = true
+            } else if (toggle) {
+                gsap.fromTo(startedChat.current, 
+                    {
+                        duration: 0.25,
+                        ease: "none",
+                        left: 0,
+                        display: "flex",
+                        opacity: 1
+                    },
+                    {
+                        left: -buttonWidth,
+                        display: "none",
+                        opacity: 0
+                    }
+                )
+                toggle = false
+            }
+
+        })
+    })
 
     useEffect(()=>{
         // socket message sent to room
@@ -341,14 +389,22 @@ export default function Home(){
                     }
                 </div>
                 {
-                    chatStatus && (
-                        <div>
+                    chatStatus ? (
+                        <div style={{display: "flex"}}>
+                            <input type="text" ref={msgInput}/>
+                            <button ref={sendBtn}>SEND</button>
+                        </div> 
+                    ) : (
+                        <div style={{display: "none"}}>
                             <input type="text" ref={msgInput}/>
                             <button ref={sendBtn}>SEND</button>
                         </div>       
                     )
                 }
             </div>
+            <button ref={swapBtn}>
+                <img src={swapIMG} alt="swap"/>
+            </button>
         </div>
     </>
 

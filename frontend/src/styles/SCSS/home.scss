@@ -12,6 +12,7 @@ $standard-purple-pink: rgb(230, 0, 250);
 $standard-green: rgb(0, 200, 50);
 
 .Chat {
+    position: relative;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -129,6 +130,16 @@ $standard-green: rgb(0, 200, 50);
         }
     }
 
+    @media (max-width: 600px) {
+        > :nth-child(1){
+            position: absolute;
+            top: 0;
+            left: 100vw;
+            display: none;
+            width: 100vw;
+        }
+    } 
+
     > :nth-child(2){
         display: grid;
         grid-template-rows: 85% 15%;
@@ -153,11 +164,43 @@ $standard-green: rgb(0, 200, 50);
             }
 
             > button{
+                position: relative;
                 background-color: $standard-green;
                 width: $nonres-small-width;
                 height: $nonres-small-height;
                 border-radius: $nonres-small-borderRadius;
+                cursor: pointer;
+                z-index: 1;
             }
+        }
+    }
+
+    @media (max-width: 600px) {
+        > :nth-child(2) {
+            width: 100vw;
+        }
+    }
+
+    > :nth-child(3) {
+        position: fixed;
+        top: $nonres-medium-general-spacing;
+        left: $nonres-medium-general-spacing;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        border: none;
+        background-color: $standard-black;
+        border-radius: calc($nonres-small-borderRadius/4);
+
+        > img {
+            position: relative;
+            z-index: 1;
+        }
+    }
+    
+    @media (max-width: 600px) {
+        > :nth-child(3) {
+            display: flex;
         }
     }
 }
