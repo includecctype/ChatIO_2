@@ -37,7 +37,7 @@ CORS(
     origins=[
         f"{os.getenv('FRONT_END_URI')}"
     ],
-    supports_credentials=True # responsible for cookie
+    supports_credentials=True
 )
 
 Session(app)
